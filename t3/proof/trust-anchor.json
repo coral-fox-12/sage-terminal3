@@ -1,0 +1,26 @@
+{
+  "verified_at": "2026-11-17T04:27:57.012Z",
+  "environment": "testnet",
+  "node_url": "https://cn-api.sg.testnet.t3n.terminal3.io",
+  "sdk": "@terminal3/t3n-sdk 5.41.0",
+  "wasm_load_ms": 205,
+  "trust_anchor": {
+    "expected_peer_ids": [
+      "QmPk4AtbFore74fJoP4CoS9Q96TvRvoQWR4VmkYtkBLmwz",
+      "QmQBh7yAKG1kwxsEjdMAToDkWSkZiXhoXgxb1oytKi2nXu",
+      "QmSGy7LgDCF796PH6ctS7LZ5U5TpWZjq6EU5S4NvaNk6cJ"
+    ],
+    "rtmr3_allowlist": [
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    ],
+    "rtmr1_allowlist": [
+      "c1Nwltqns5w804NtkbaBbRFp13kU7G/YclWLiDLAUbhqwsqWo/UoRNYvQikQ9tdP"
+    ],
+    "sev_snp_measurement_allowlist": [],
+    "source": {
+      "manifest_version": 1792737241,
+      "signed_at": "2026-10-23T06:34:01Z",
+      "url": "https://cn-api.sg.testnet.t3n.terminal3.io/api/trust-manifest"
+    }
+  }
+}
