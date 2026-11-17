@@ -24,10 +24,10 @@ test("sha256Hex matches Node crypto on known vectors", () => {
 });
 
 test("describeSecret never contains the secret", () => {
-  const key = "AIzaSyD-SECRET-KEY-MATERIAL-1234567890";
+  const key = "test-secret-key-material-1234567890";
   const desc = describeSecret(key);
-  assert.ok(!desc.includes("AIza"));
-  assert.ok(!desc.includes("SECRET"));
+  assert.ok(!desc.includes("test-secret"));
+  assert.ok(!desc.includes("1234567890"));
   assert.ok(desc.includes(String(key.length)));
 });
 
