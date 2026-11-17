@@ -1,0 +1,76 @@
+/// sage-private-brief WIT world — Sage Private Briefs for Terminal 3.
+///
+/// Imports required host capabilities:
+///   - tenant-context: tenant DID + cluster timestamp (seal receipt)
+///   - logging:        debug / info / error lines (never key material)
+///   - kv-store:       `briefs` map (sealed briefs, readers = this contract
+///                     only) and `secrets` map (Gemini API key, readers =
+///                     this contract only)
+///   - http:           Gemini generateContent call from inside the enclave.
+///                     The Gemini API key is read from the `secrets` KV map
+///                     and sent as a request header; it never crosses the WIT
+///                     boundary and never touches the browser or CLI.
+///
+/// Privacy model:
+///   - `seal-brief`: the full brief JSON is stored ONLY in the private
+///     `z:<tid>:briefs` KV map under its SHA-256 content address. The SHA-256
+///     digest is also published via `kv-store.set-claims-digest`, so it lands
+///     in the transaction's Merkle leaf and the seal is verifiable offline.
+///     Only the content-address (hash), symbol, byte length and timestamp
+///     cross the boundary back to the caller.
+///   - `private-rewrite`: the sealed brief is read back inside the enclave,
+///     sent to Gemini with the enclave-held key, and only the rewritten text
+///     returns. The brief itself never leaves the enclave except to Gemini,
+///     under the calling user's egress grant for
+///     generativelanguage.googleapis.com.
+///
+/// Outbound HTTP is authorized by the calling user (data owner), not the
+/// contract: before `private-rewrite` can reach Gemini, the user must grant
+/// this contract's `private-rewrite` function egress to
+/// generativelanguage.googleapis.com (member-delegation-update). Without the
+/// grant the call fails with `host/http.egress_denied`.
+package z:sage-private-brief@0.1.0;
+
+world sage-private-brief {
+    import host:tenant/tenant-context@2.0.0;
+    import host:interfaces/logging@2.1.0;
+    import host:interfaces/kv-store@2.1.0;
+    import host:interfaces/http@2.1.0;
+
+    export contracts;
+}
+
+interface contracts {
+    /// Standard 3-field envelope used by all contracts callable from the node.
+    /// `input`        — JSON-serialized request payload specific to the function.
+    /// `user-profile` — always None for tenant contracts (hardcoded at dispatch).
+    /// `context`      — JSON-serialized DynamicContext (node-minted, trusted).
+    record generic-input {
+        input:        option<list<u8>>,
+        user-profile: option<list<u8>>,
+        context:      option<list<u8>>,
+    }
+
+    /// Seal a Sage research brief into the private `briefs` KV map.
+    /// Input  (JSON): { symbol, brief }
+    ///   - `symbol`: stock ticker, e.g. "NVDA".
+    ///   - `brief`: the full brief object from Sage `buildBrief()` (JSON object).
+    /// Output (JSON): { key, symbol, bytes, map, sealed_at_secs }
+    ///   - `key`: SHA-256 hex of the canonical (key-sorted) brief JSON — the
+    ///     content address under which the brief is stored. Also published as
+    ///     the transaction's claims digest (Merkle leaf).
+    ///   - `map`: canonical map name `z:<tid>:briefs`.
+    seal-brief: func(req: generic-input) -> result<list<u8>, string>;
+
+    /// Rewrite a sealed brief with Gemini, inside the enclave.
+    /// Input  (JSON): { key, instruction?, model? }
+    ///   - `key`: SHA-256 hex from `seal-brief`.
+    ///   - `instruction`: optional rewrite instruction (default: rewrite in
+    ///     clear natural language, keep every number exact, <250 words).
+    ///   - `model`: optional Gemini model (default "gemini-2.5-flash").
+    /// Output (JSON): { key, model, text, prompt_tokens, output_tokens, total_tokens }
+    /// Only the rewritten text crosses the boundary back. The Gemini API key
+    /// is read from `z:<tid>:secrets` (key `gemini_api_key`) inside the
+    /// enclave and is never returned or logged.
+    private-rewrite: func(req: generic-input) -> result<list<u8>, string>;
+}
