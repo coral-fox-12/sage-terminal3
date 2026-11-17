@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sage — Research agent for tokenized stocks on Base</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Sage</h1>
+  <p class="tagline">A research agent for tokenized stocks on Base. Reads live prices
+  straight off Base mainnet (Chainlink feeds, no API key) and writes a sourced,
+  checkable research brief for each stock.</p>
+  <p class="notice"><strong>Not financial advice.</strong> Research only — no real
+  trading, no custody, no token launch. Tokenized stocks are not shares and carry
+  no voting rights. Not available to US users for trading; this app does not trade.</p>
+</header>
+
+<main>
+  <section id="status" class="card">
+    <span id="statusText">Loading live prices from Base…</span>
+    <label class="demo-toggle"><input type="checkbox" id="demoToggle"> Demo data
+      <span class="hint">(offline screenshots only — every demo value is labelled DEMO)</span></label>
+  </section>
+
+  <section class="card">
+    <h2>Live prices — Coinbase tokenized stocks on Base</h2>
+    <p class="fineprint">Source: Chainlink price feeds on Base mainnet, read via the
+      public RPC. Feeds are Total Return Values (price × multiplier), 8 decimals,
+      24/5 market hours. <span id="priceStamp"></span></p>
+    <div id="priceGrid" class="grid"></div>
+  </section>
+
+  <section class="card">
+    <h2>Research brief</h2>
+    <div class="row">
+      <select id="stockSelect" aria-label="Pick a stock"></select>
+      <button id="briefBtn">Generate brief</button>
+    </div>
+    <div id="brief"></div>
+    <div class="row">
+      <button id="anchorBtn" disabled title="Needs a funded Base Sepolia wallet — see README">Anchor brief onchain (testnet)</button>
+      <span id="anchorStatus" class="fineprint">Onchain anchoring: contract ready, awaiting testnet deployment. The button stays disabled until then — we don't fake a transaction.</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Paper portfolio — virtual $10,000, zero real money</h2>
+    <p class="fineprint">Simulated trades at the live feed price. Positions are stored
+      only in your browser (localStorage). Nothing here buys or sells anything real.</p>
+    <div id="paperSummary"></div>
+    <div class="row">
+      <select id="paperSelect" aria-label="Pick a stock to trade"></select>
+      <input id="paperShares" type="number" min="0.01" step="0.01" value="1" aria-label="Shares">
+      <button id="paperBuy">Paper buy</button>
+      <button id="paperSell">Paper sell</button>
+      <button id="paperReset">Reset</button>
+    </div>
+    <div id="paperPositions"></div>
+    <div id="paperTrades"></div>
+  </section>
+
+  <section class="card">
+    <h2>Optional: AI rewrite (bring your own key)</h2>
+    <p class="fineprint">Paste a Gemini API key to have the brief rewritten in natural
+      language. The key is stored only in your browser's localStorage and is never
+      sent anywhere except Google's API. Without a key, the deterministic brief above
+      is the full product — the agent works with zero keys.</p>
+    <div class="row">
+      <input id="geminiKey" type="password" placeholder="Gemini API key (optional)" autocomplete="off">
+      <button id="saveKey">Save key locally</button>
+      <button id="rewriteBtn" disabled>Rewrite brief with AI</button>
+    </div>
+    <div id="aiBrief"></div>
+  </section>
+
+  <section class="card" id="t3Panel">
+    <h2>Private Briefs — Terminal 3 (TEE)</h2>
+    <p class="fineprint">The same brief, sealed: the full brief JSON is stored only in a
+      tenant-private TEE key-value map under its SHA-256 content address, and a rewrite
+      runs inside the enclave with an enclave-held Gemini key — the key and the full brief
+      never touch this browser or the CLI. The public onchain anchor (above) stores only
+      a hash; this layer keeps the text itself private.</p>
+    <p id="t3Proof" class="fineprint">Checking trust-anchor proof…</p>
+    <div class="row">
+      <button id="t3RefreshBrief">Compute content address for current brief</button>
+      <button id="t3DownloadBrief" disabled>Download brief JSON</button>
+      <button id="t3CopySeal" disabled>Copy seal command</button>
+    </div>
+    <p id="t3BriefInfo" class="fineprint">No brief yet — generate a research brief above first.</p>
+    <p><code id="t3Key">—</code></p>
+    <div class="row">
+      <input id="t3SealKey" type="text" placeholder="Paste the 64-hex seal key from seal-brief" autocomplete="off" style="flex:1;min-width:280px">
+      <button id="t3CopyRewrite">Copy rewrite command</button>
+    </div>
+    <p id="t3Status" class="fineprint"></p>
+    <p class="fineprint">Honest limits: this static page cannot open a T3 enclave session
+      (the SDK's WASM worker needs COOP/COEP headers a static host can't send), so sealing
+      and rewriting run from the repo CLI — <code>node t3/cli.mjs seal-brief</code> then
+      <code>node t3/cli.mjs private-rewrite</code> (needs a T3N API key from the Terminal 3
+      claim page). This panel never sends your brief or any key anywhere; its only network
+      call is fetching the proof JSON above. Contract:
+      <a href="https://github.com/coral-fox-12/sage-terminal3/tree/main/contract">contract/</a> ·
+      <a href="https://github.com/coral-fox-12/sage-terminal3">repo</a> ·
+      <a href="https://docs.terminal3.io/developers/adk/get-started/quickstart">T3 docs</a>.</p>
+  </section>
+
+  <section class="card">
+    <h2>How it works</h2>
+    <ol>
+      <li>Prices come from Chainlink aggregator contracts on Base (see <a href="js/feeds.js">js/feeds.js</a> for the feed addresses).</li>
+      <li>The brief is computed by fixed, auditable rules in <a href="js/analysis.js">js/analysis.js</a> — 24h/7d change, volatility, momentum score 0–100. If a feed is stale (&gt;25h), the score is withheld.</li>
+      <li>Each brief can be anchored onchain as a hash (<a href="contracts/ResearchAnchor.sol">ResearchAnchor.sol</a>) — testnet deployment pending.</li>
+      <li>Private Briefs (Terminal 3): the same brief can be sealed into a tenant-private TEE map and rewritten inside the enclave — see the panel above and <a href="https://github.com/coral-fox-12/sage-terminal3">the repo's T3 CLI</a>.</li>
+      <li>Built for the Base Stocks Maxxing Season, Agentic Stock Finance track. <a href="PLAN.md">Full plan &amp; verification notes</a>.</li>
+    </ol>
+  </section>
+</main>
+
+<footer>
+  <p>Sage — built in the open for Base Stocks Maxxing Season (Nov 5 – Dec 5, 2026).
+  Not affiliated with Coinbase, Base, or any listed company.</p>
+</footer>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
