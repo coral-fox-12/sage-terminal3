@@ -1,0 +1,20 @@
+{
+  "name": "sage-terminal3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "node --test tests/lib.test.mjs",
+    "verify": "node t3/cli.mjs verify"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@terminal3/t3n-sdk": "^5.41.0"
+  }
+}
