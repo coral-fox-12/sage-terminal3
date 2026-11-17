@@ -1,0 +1,32 @@
+:root { --blue: #0000ff; --ink: #111; --muted: #666; --line: #ddd; --bg: #fafafa; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--ink); background: var(--bg); line-height: 1.5; }
+header, main, footer { max-width: 880px; margin: 0 auto; padding: 16px; }
+h1 { font-size: 2.2rem; margin: 8px 0 0; color: var(--blue); }
+.tagline { font-size: 1.05rem; }
+.notice { background: #fff8e1; border: 1px solid #f0d060; padding: 10px 12px; border-radius: 8px; }
+.card { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin: 16px 0; }
+h2 { margin-top: 0; font-size: 1.25rem; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-top: 10px; }
+.tile { border: 1px solid var(--line); border-radius: 8px; padding: 10px; cursor: pointer; background: #fff; }
+.tile:hover, .tile.selected { border-color: var(--blue); }
+.tile .sym { font-weight: 700; }
+.tile .price { font-size: 1.3rem; font-weight: 700; }
+.tile .meta { color: var(--muted); font-size: .85rem; }
+.tile .stale { color: #b00020; font-weight: 700; }
+.tile .demo { color: #b00020; font-weight: 700; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 10px 0; }
+button, select, input { font: inherit; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--line); }
+button { background: var(--blue); color: #fff; border-color: var(--blue); cursor: pointer; }
+button:disabled { background: #999; border-color: #999; cursor: not-allowed; }
+.fineprint { color: var(--muted); font-size: .9rem; }
+.warn { color: #b00020; font-weight: 700; }
+.brief h3 { margin-bottom: 4px; }
+.brief table { border-collapse: collapse; margin: 8px 0; }
+.brief td, .brief th { border: 1px solid var(--line); padding: 6px 10px; text-align: left; }
+.brief td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.demo-toggle { margin-left: auto; font-size: .9rem; }
+.hint { color: var(--muted); }
+footer { color: var(--muted); font-size: .9rem; }
+#t3Panel code { word-break: break-all; }
+#t3SealKey { font-family: ui-monospace, monospace; font-size: .85rem; }
