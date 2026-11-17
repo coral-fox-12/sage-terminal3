@@ -3,37 +3,60 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sage — Research agent for tokenized stocks on Base</title>
+<title>Sage Private Briefs — research briefs, sealed on Terminal 3</title>
+<meta name="description" content="Sage reads live Chainlink prices for tokenized stocks on Base, writes a sourced research brief, anchors its hash onchain — and seals the full brief inside a Terminal 3 enclave.">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header>
-  <h1>Sage</h1>
-  <p class="tagline">A research agent for tokenized stocks on Base. Reads live prices
-  straight off Base mainnet (Chainlink feeds, no API key) and writes a sourced,
-  checkable research brief for each stock.</p>
-  <p class="notice"><strong>Not financial advice.</strong> Research only — no real
-  trading, no custody, no token launch. Tokenized stocks are not shares and carry
-  no voting rights. Not available to US users for trading; this app does not trade.</p>
+<div class="topline"></div>
+
+<header class="masthead">
+  <div class="eyebrow-row">
+    <span class="eyebrow">Terminal 3 — Build+Scale Agent Micro Grant</span>
+    <span class="eyebrow eyebrow-right">Base mainnet · Chainlink · TEE</span>
+  </div>
+  <div class="masthead-grid">
+    <div class="masthead-title">
+      <h1>Sage<br><em>Private Briefs</em></h1>
+    </div>
+    <div class="masthead-deck">
+      <div class="stamp" aria-hidden="true"><span>Sealed</span><span class="stamp-sub">in the enclave</span></div>
+      <p class="deck">Sage reads live Chainlink prices for eight tokenized stocks on Base,
+      writes a sourced brief for each one, and anchors the brief&rsquo;s hash onchain
+      so anyone can check it existed. The hash is public. The brief itself —
+      positions, notes, the rewrite — is sealed inside a Terminal&nbsp;3 enclave,
+      and only the hash ever leaves it.</p>
+    </div>
+  </div>
+  <p class="notice"><span class="notice-label">Read first — not financial advice.</span>
+    Research only — no real trading, no custody, no token launch. Tokenized stocks are
+    not shares and carry no voting rights. Not available to US users for trading;
+    this app does not trade.</p>
 </header>
 
 <main>
-  <section id="status" class="card">
+  <div class="status-strip">
+    <span class="status-label">Feed status</span>
     <span id="statusText">Loading live prices from Base…</span>
     <label class="demo-toggle"><input type="checkbox" id="demoToggle"> Demo data
       <span class="hint">(offline screenshots only — every demo value is labelled DEMO)</span></label>
-  </section>
+  </div>
 
-  <section class="card">
-    <h2>Live prices — Coinbase tokenized stocks on Base</h2>
-    <p class="fineprint">Source: Chainlink price feeds on Base mainnet, read via the
-      public RPC. Feeds are Total Return Values (price × multiplier), 8 decimals,
-      24/5 market hours. <span id="priceStamp"></span></p>
+  <section>
+    <p class="eyebrow">01 — Live prices</p>
+    <h2>Eight stocks, priced onchain.</h2>
+    <p class="fineprint">Chainlink aggregators on Base mainnet, read through the public
+      RPC — no key. Total Return Values (price × multiplier), 8 decimals, 24/5 market
+      hours. Click a tile to brief that stock. <span id="priceStamp"></span></p>
     <div id="priceGrid" class="grid"></div>
   </section>
 
-  <section class="card">
-    <h2>Research brief</h2>
+  <section>
+    <p class="eyebrow">02 — The brief</p>
+    <h2>A brief you can check.</h2>
+    <p class="fineprint">Fixed, auditable rules — 24h and 7d change, annualised
+      volatility, a momentum score from 0 to 100. If a feed is stale (over 25 hours
+      old) the score is withheld, not guessed. Every number names its source.</p>
     <div class="row">
       <select id="stockSelect" aria-label="Pick a stock"></select>
       <button id="briefBtn">Generate brief</button>
@@ -45,8 +68,9 @@
     </div>
   </section>
 
-  <section class="card">
-    <h2>Paper portfolio — virtual $10,000, zero real money</h2>
+  <section>
+    <p class="eyebrow">03 — Paper portfolio</p>
+    <h2>$10,000 of pretend money.</h2>
     <p class="fineprint">Simulated trades at the live feed price. Positions are stored
       only in your browser (localStorage). Nothing here buys or sells anything real.</p>
     <div id="paperSummary"></div>
@@ -61,8 +85,9 @@
     <div id="paperTrades"></div>
   </section>
 
-  <section class="card">
-    <h2>Optional: AI rewrite (bring your own key)</h2>
+  <section>
+    <p class="eyebrow">04 — Rewrite</p>
+    <h2>Rewrite it — your key, your browser.</h2>
     <p class="fineprint">Paste a Gemini API key to have the brief rewritten in natural
       language. The key is stored only in your browser's localStorage and is never
       sent anywhere except Google's API. Without a key, the deterministic brief above
@@ -75,40 +100,52 @@
     <div id="aiBrief"></div>
   </section>
 
-  <section class="card" id="t3Panel">
-    <h2>Private Briefs — Terminal 3 (TEE)</h2>
-    <p class="fineprint">The same brief, sealed: the full brief JSON is stored only in a
-      tenant-private TEE key-value map under its SHA-256 content address, and a rewrite
-      runs inside the enclave with an enclave-held Gemini key — the key and the full brief
-      never touch this browser or the CLI. The public onchain anchor (above) stores only
-      a hash; this layer keeps the text itself private.</p>
-    <p id="t3Proof" class="fineprint">Checking trust-anchor proof…</p>
-    <div class="row">
-      <button id="t3RefreshBrief">Compute content address for current brief</button>
-      <button id="t3DownloadBrief" disabled>Download brief JSON</button>
-      <button id="t3CopySeal" disabled>Copy seal command</button>
+  <section class="darkband" id="t3Panel">
+    <div class="darkband-inner">
+      <p class="eyebrow eyebrow-dark">05 — Private briefs · Terminal 3 TEE</p>
+      <h2>The brief stays sealed.</h2>
+      <p class="dark-lede">The same brief, sealed: the full brief JSON lives only in a
+        tenant-private TEE key-value map, under its SHA-256 content address. A rewrite
+        runs inside the enclave with an enclave-held Gemini key — the key and the full
+        brief never touch this browser or the CLI. The public anchor above stores only
+        a hash; this layer keeps the text itself private.</p>
+      <p id="t3Proof" class="fineprint fineprint-dark">Checking trust-anchor proof…</p>
+      <div class="row">
+        <button id="t3RefreshBrief">Compute content address for current brief</button>
+        <button id="t3DownloadBrief" disabled>Download brief JSON</button>
+        <button id="t3CopySeal" disabled>Copy seal command</button>
+      </div>
+      <p id="t3BriefInfo" class="fineprint fineprint-dark">No brief yet — generate a research brief above first.</p>
+      <p><code id="t3Key">—</code></p>
+      <div class="terminal" aria-label="The five CLI commands, in order">
+        <p class="terminal-caption">Five commands, in order, from the repo. The first three run once; the last two run per brief.</p>
+        <pre><span class="prompt">$</span> node t3/cli.mjs setup
+<span class="prompt">$</span> node t3/cli.mjs seed-gemini
+<span class="prompt">$</span> node t3/cli.mjs grant
+<span class="prompt">$</span> node t3/cli.mjs seal-brief --file sage-brief-NVDA.json --symbol NVDA
+<span class="prompt">$</span> node t3/cli.mjs private-rewrite --key &lt;64-hex&gt;</pre>
+      </div>
+      <div class="row">
+        <input id="t3SealKey" type="text" placeholder="Paste the 64-hex seal key from seal-brief" autocomplete="off" style="flex:1;min-width:280px">
+        <button id="t3CopyRewrite">Copy rewrite command</button>
+      </div>
+      <p id="t3Status" class="fineprint fineprint-dark"></p>
+      <p class="fineprint fineprint-dark">Honest limits: this static page cannot open a T3 enclave session
+        (the SDK's WASM worker needs COOP/COEP headers a static host can't send), so sealing
+        and rewriting run from the repo CLI — <code>node t3/cli.mjs seal-brief</code> then
+        <code>node t3/cli.mjs private-rewrite</code> (needs a T3N API key from the Terminal 3
+        claim page). This panel never sends your brief or any key anywhere; its only network
+        call is fetching the proof JSON above. Contract:
+        <a href="https://github.com/coral-fox-12/sage-terminal3/tree/main/contract">contract/</a> ·
+        <a href="https://github.com/coral-fox-12/sage-terminal3">repo</a> ·
+        <a href="https://docs.terminal3.io/developers/adk/get-started/quickstart">T3 docs</a>.</p>
     </div>
-    <p id="t3BriefInfo" class="fineprint">No brief yet — generate a research brief above first.</p>
-    <p><code id="t3Key">—</code></p>
-    <div class="row">
-      <input id="t3SealKey" type="text" placeholder="Paste the 64-hex seal key from seal-brief" autocomplete="off" style="flex:1;min-width:280px">
-      <button id="t3CopyRewrite">Copy rewrite command</button>
-    </div>
-    <p id="t3Status" class="fineprint"></p>
-    <p class="fineprint">Honest limits: this static page cannot open a T3 enclave session
-      (the SDK's WASM worker needs COOP/COEP headers a static host can't send), so sealing
-      and rewriting run from the repo CLI — <code>node t3/cli.mjs seal-brief</code> then
-      <code>node t3/cli.mjs private-rewrite</code> (needs a T3N API key from the Terminal 3
-      claim page). This panel never sends your brief or any key anywhere; its only network
-      call is fetching the proof JSON above. Contract:
-      <a href="https://github.com/coral-fox-12/sage-terminal3/tree/main/contract">contract/</a> ·
-      <a href="https://github.com/coral-fox-12/sage-terminal3">repo</a> ·
-      <a href="https://docs.terminal3.io/developers/adk/get-started/quickstart">T3 docs</a>.</p>
   </section>
 
-  <section class="card">
-    <h2>How it works</h2>
-    <ol>
+  <section>
+    <p class="eyebrow">06 — How it works</p>
+    <h2>End to end, nothing hidden.</h2>
+    <ol class="steps">
       <li>Prices come from Chainlink aggregator contracts on Base (see <a href="js/feeds.js">js/feeds.js</a> for the feed addresses).</li>
       <li>The brief is computed by fixed, auditable rules in <a href="js/analysis.js">js/analysis.js</a> — 24h/7d change, volatility, momentum score 0–100. If a feed is stale (&gt;25h), the score is withheld.</li>
       <li>Each brief can be anchored onchain as a hash (<a href="contracts/ResearchAnchor.sol">ResearchAnchor.sol</a>) — testnet deployment pending.</li>
